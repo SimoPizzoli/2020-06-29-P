@@ -5,9 +5,15 @@
 package it.polito.tdp.PremierLeague;
 
 import java.net.URL;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.PremierLeague.model.Adiacenza;
+import it.polito.tdp.PremierLeague.model.Match;
 import it.polito.tdp.PremierLeague.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -39,30 +45,85 @@ public class FXMLController {
     private TextField txtMinuti; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbMese"
-    private ComboBox<?> cmbMese; // Value injected by FXMLLoader
+    private ComboBox<Month> cmbMese; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbM1"
-    private ComboBox<?> cmbM1; // Value injected by FXMLLoader
+    private ComboBox<Match> cmbM1; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbM2"
-    private ComboBox<?> cmbM2; // Value injected by FXMLLoader
+    private ComboBox<Match> cmbM2; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
 
     @FXML
     void doConnessioneMassima(ActionEvent event) {
-    	
+    	txtResult.clear();
+    	if(model.getGrafo() == null) {
+    		txtResult.setText("Creare prima il grafo!");
+    		return;
+    	}
+    	else {
+    		txtResult.setText("Coppie con connessione massima:\n\n");
+    		for(Adiacenza a : model.getConnessioneMax())
+    		txtResult.appendText(a.toString());
+    	}
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	txtResult.clear();
+    	
+    	Integer minuti;
+    	Month mese;
+    	Integer nMese;
+    	
+    	try {
+    		minuti = Integer.parseInt(txtMinuti.getText());
+    		mese = cmbMese.getValue();
+    		if(mese == null) {
+    			txtResult.setText("Inserire valori");
+    			return;
+    		}
+    		else {
+    			nMese = mese.getValue();
+    			txtResult.appendText(model.creaGrafo(nMese, minuti));
+    		}
+    		
+    	}catch(NumberFormatException e) {
+    		e.printStackTrace();
+    		txtResult.setText("Inserire valori");
+    		return;
+    	}
+    	
+    	cmbM1.getItems().clear();
+    	cmbM1.getItems().addAll(model.getGrafo().vertexSet());
+    	cmbM2.getItems().clear();
+    	cmbM2.getItems().addAll(model.getGrafo().vertexSet());
     	
     }
 
     @FXML
     void doCollegamento(ActionEvent event) {
+    	txtResult.clear();
     	
+    	Match m1 = cmbM1.getValue();
+    	Match m2 = cmbM2.getValue();
+    	
+    	if(model.getGrafo() == null) {
+    		txtResult.setText("Creare prima il grafo!");
+    		return;
+
+    	}
+    	
+    	if(m1.equals(m2)) {
+    		txtResult.setText("Scegliere due partite diverse");
+    		return;
+    	}
+    	
+    	for(Match m : model.calcolaCollegamento(m1, m2)) {
+    		txtResult.appendText(m.toString() + "\n");
+    	}
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -74,12 +135,15 @@ public class FXMLController {
         assert cmbMese != null : "fx:id=\"cmbMese\" was not injected: check your FXML file 'Scene.fxml'.";        assert cmbM1 != null : "fx:id=\"cmbM1\" was not injected: check your FXML file 'Scene.fxml'.";
         assert cmbM2 != null : "fx:id=\"cmbM2\" was not injected: check your FXML file 'Scene.fxml'.";
         assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Scene.fxml'.";
-
+        
+        cmbMese.getItems().clear();
+        for(int i = 1; i <= 12; i++) {
+        	cmbMese.getItems().add(Month.of(i));
+        }
     }
     
     public void setModel(Model model) {
     	this.model = model;
-  
     }
     
     
